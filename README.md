@@ -1,29 +1,122 @@
-# Create T3 App
+# Project Management App
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This is a Project Management application built using the T3 stack. The stack includes:
+- **Supabase**: For the database
+- **NextAuth**: For authentication
+- **tRPC**: For type-safe APIs
+- **Next.js**: For the frontend framework
+- **Prisma**: For the ORM
 
-## What's next? How do I make an app with this?
+## Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- User authentication with credentials (login and registration)
+- Create, read, update, and delete (CRUD) operations for projects and tasks
+- Assign tasks to multiple users
+- Dashboard to display various statistics
+- Filtering on tasks and projects
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Getting Started
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+### Prerequisites
 
-## Learn More
+Before you begin, ensure you have the following installed:
+- Node.js
+- npm or yarn
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+### Installation
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+1. **Clone the repository:**
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+    ```sh
+    git clone https://github.com/your-username/project-management-app.git
+    cd project-management-app
+    ```
 
-## How do I deploy this?
+2. **Install the dependencies:**
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+    ```sh
+    npm install
+    # or
+    yarn install
+    ```
+
+3. **Set up the environment variables:**
+
+    Create a `.env` file in the root of your project and add the following variables:
+
+    ```plaintext
+    # When adding additional environment variables, the schema in "/src/env.js"
+    # should be updated accordingly.
+
+    # Prisma
+    # https://www.prisma.io/docs/reference/database-reference/connection-urls#env
+    DATABASE_URL="postgresql://postgres:abhishekritu810219@db.vawsjvfzsgubumdaspyh.supabase.co:5432/postgres"
+
+    # Next Auth
+    # You can generate a new secret on the command line with:
+    # openssl rand -base64 32
+    # https://next-auth.js.org/configuration/options#secret
+    NEXTAUTH_SECRET="your_secret_key"
+    NEXTAUTH_URL="http://localhost:3000"
+
+    # # Next Auth Discord Provider (Optional)
+    # DISCORD_CLIENT_ID=""
+    # DISCORD_CLIENT_SECRET=""
+    ```
+
+4. **Set up the database:**
+
+    Run the Prisma migrations to set up your database schema:
+
+    ```sh
+    npx prisma migrate dev --name init
+    ```
+
+5. **Start the development server:**
+
+    ```sh
+    npm run dev
+    # or
+    yarn dev
+    ```
+
+    Your application should now be running on [http://localhost:3000](http://localhost:3000).
+
+### Project Structure
+
+- `/src`: Contains the source code of the application
+  - `/env.js`: Schema for environment variables
+  - `/pages`: Next.js pages
+  - `/api`: tRPC API routes
+  - `/auth`: NextAuth configuration
+  - `/prisma`: Prisma schema and client
+
+### Authentication
+
+This project uses NextAuth for handling authentication with credentials. Users can register and log in using their email and password. Sessions are managed to keep users logged in.
+
+### Database
+
+Supabase is used as the database provider. Prisma is used to interact with the database. Ensure your `DATABASE_URL` in the `.env` file is correctly configured to connect to your Supabase instance.
+
+### API
+
+tRPC is used to create type-safe APIs. You can find the API routes in the `/src/api` directory.
+
+### Dashboard
+
+The dashboard provides an overview of various statistics related to projects and tasks. It includes features to filter tasks and projects based on different criteria.
+
+### Contributing
+
+Contributions are welcome! Please create an issue or submit a pull request for any feature requests or bug fixes.
+
+### License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+---
+
+**Note:** Replace `"your_secret_key"` in the `.env` file with an actual secret key generated using `openssl rand -base64 32` or any other secure method.
+
+Happy coding!

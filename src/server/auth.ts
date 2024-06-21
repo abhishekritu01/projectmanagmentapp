@@ -1,13 +1,14 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { type GetServerSidePropsContext } from "next";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { GetServerSidePropsContext } from "next";
 import {
   getServerSession,
-  type DefaultSession,
-  type NextAuthOptions,
+  DefaultSession,
+  NextAuthOptions,
+  Session as NextAuthSession,
+  User as NextAuthUser,
 } from "next-auth";
-import { type Adapter } from "next-auth/adapters";
-import DiscordProvider from "next-auth/providers/discord";
-
+import CredentialsProvider from "next-auth/providers/credentials";
+import { compare } from "bcryptjs";
 import { env } from "~/env";
 import { db } from "~/server/db";
 
@@ -19,17 +20,23 @@ import { db } from "~/server/db";
  */
 declare module "next-auth" {
   interface Session extends DefaultSession {
-    user: DefaultSession["user"] & {
+    user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      email: string;
+      username?: string;
     };
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    id: string;
+    email: string;
+    username?: string;
+  }
+}
+
+interface Credentials {
+  email: string;
+  password: string;
 }
 
 /**
@@ -38,31 +45,70 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
-  callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
-  },
-  adapter: PrismaAdapter(db) as Adapter,
+  adapter: PrismaAdapter(db),
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
-    }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials: Credentials | undefined): Promise<NextAuthUser | null> {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Email and password are required');
+        }
+
+        const user = await db.user.findUnique({
+          where: { email: credentials.email }
+        });
+
+        if (!user) {
+          throw new Error('No user found with this email, you need to register first');
+        }
+
+        if (!user.password) {
+          throw new Error('User account does not have a password set');
+        }
+
+        const isValid = await compare(credentials.password, user.password);
+
+        if (!isValid) {
+          throw new Error('Invalid password');
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          username: user.username ?? undefined // Ensure username is optional
+        };
+      }
+    })
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.username = user.username;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.email = token.email!;
+        session.user.username = token.username as string;
+      }
+      return session;
+    }
+  },
+  pages: {
+    signIn: '/login',
+  },
+  session: {
+    strategy: 'jwt'
+  },
+  secret: env.NEXTAUTH_SECRET,
 };
 
 /**
