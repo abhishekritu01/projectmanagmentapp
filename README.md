@@ -50,7 +50,7 @@ Before you begin, ensure you have the following installed:
 
     # Prisma
     # https://www.prisma.io/docs/reference/database-reference/connection-urls#env
-    DATABASE_URL="postgresql://postgres:abhishekritu810219@db.vawsjvfzsgubumdaspyh.supabase.co:5432/postgres"
+    DATABASE_URL="postgresql://"
 
     # Next Auth
     # You can generate a new secret on the command line with:
@@ -69,7 +69,7 @@ Before you begin, ensure you have the following installed:
     Run the Prisma migrations to set up your database schema:
 
     ```sh
-    npx prisma migrate dev --name init
+    npx prisma migrate dev --name init      || npx prisma push db
     ```
 
 5. **Start the development server:**
